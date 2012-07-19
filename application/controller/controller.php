@@ -5,23 +5,95 @@ session_start();
 // Prepare data and make functions available
 include(M . "model.php");
 
-// Check if we have a session
+$renderView = '';
+$pageTitle = "c$75 Finance";
+$statusMessage = '';
+$balance = '';
+$displayBalance = '';
 
-	// if we do then check for actions
+/* if we are not authenticated we need to login or register */
+if(!(isset($_SESSION['authenticated']))) 
+{
+	/* show our status as not logged in */
+	$loginStatus = "Not logged in";
 
-	// if no actions display main dashboard
+    /* check if we have submitted a login or registration request */
+    if ((isset($_POST['email'])) && (isset($_POST['password']))) 
+    {
+    	if ( isset($_POST['register'])) 
+    	{
+    		echo "Adding User<br />";
+    		addUser($_POST['email'], $_POST['password']);
+    	}
+    	else
+    	{
+    	    echo "Checking Login<br />";
+    	    $userId = loginUser($_POST['email'], $_POST['password']);
+    	    echo "userId is" . $userId . "<br />";
+    	    
+    	    /* if we have a valid userId, move to the main page, otherwise print rejection */
+    	    if( $userId > 0 )
+    	    {
+    	    	$_SESSION['authenticated']=true;
+    	    	$_SESSION['userId']=$userId;
+    	    	header("Location: http://$host$path/index.php");
+
+    	    } else 
+    	    {
+    		    $statusMessage = "You have failed authentication<br />";
+    	    }
+    	}
+    }  
+    /* display loginForm */
+	loginForm();
+
+}
+else
+{
+	/* We are logged in */
+	$loginStatus = "Logged in (<a href=\"http://$host$path/index.php?action=logout\">Log Out</a>)";
+	$balance = getBalance();
+	$displayBalance = "Your account balance is: $balance";
 	
-// if we have no session, display login page with option to register
+	/* check what action the user is trying to take */
+    if (isset($_GET['action'])) 
+    {
+    
+    	$action = $_GET['action']; 
+        
+        switch ($action) 
+        { 
+        	case "getQuote":
+        	
+        		$pageTitle = "Get Quote";
+        		$quoteResult=getQuote($_GET['symbol']);
+        		
+        	break;
+        
+            case "buy":
+            
+            	$pageTitle = "Buy Stocks";
+                  
+            break;
+            
+            case "sell":
+            
+                $pageTitle = "Sell Stocks";
+                  
+            break;                   
+            
+            case "logout":
+            
+                session_destroy();
+    	        header("Location: http://$host$path/index.php");
 
+            break;      
+        }
+    }
+    displayMenu();
+    displayStocks();
+}
 
-connectDb();
-
-$quote = new stock;
-$quote->get_stock_quote("MSFT");
-
-$renderView = "$quote->name: $quote->last";
-
-// render view
 include(V . "view.php");
 
 ?>

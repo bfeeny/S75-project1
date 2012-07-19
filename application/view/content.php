@@ -1,13 +1,21 @@
 		<div class='container'>
-       		<div class="page-header">
-	       		<?php echo "<h1>c$75 Finance</h1>"; ?>
+       		<div class='page-header'>
+	       		<?php echo "<h1>$pageTitle</h1>"; ?>
+	       		<div class='pull-right'>
+		       		<?php echo "$loginStatus"; ?> 
+		       	</div><!--pull-right-->	
 	       	</div><!--page-header-->
-	       	
-	       	<ul class="pager">
-	       		<?php echo "Stuff"; ?> 
-	       	</ul>				
-
+	          		         
+	       	<div class='pull-left'>
+	       		<?php echo "$displayBalance"; ?>
+		        <?php echo "$statusMessage"; ?> 
+		    </div><!--pull-left-->	
+		    
+		    <br />
+		    
 			<div class='well'>
 				<?php echo $renderView; ?>
 			</div><!--well-->
        	</div><!--container-->
+       	
+       
