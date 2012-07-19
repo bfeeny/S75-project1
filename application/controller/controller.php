@@ -66,13 +66,14 @@ else
         	case "getQuote":
         	
         		$pageTitle = "Get Quote";
-        		$quoteResult=getQuote($_GET['symbol']);
+        		$quoteResult = getQuote($_GET['symbol']);
         		
         	break;
         
             case "buy":
             
             	$pageTitle = "Buy Stocks";
+            	$buyStockResult = buyStock($_GET['symbol'],$_GET['quantity']);
                   
             break;
             
@@ -90,6 +91,16 @@ else
             break;      
         }
     }
+    /* We are logged in*/
+	$loginStatus = "Logged in (<a href=\"http://$host$path/index.php?action=logout\">Log Out</a>)";
+	
+	/*
+	Important to set balance information AFTER any actions have been taken to reflect
+	proper info
+	*/
+	$balance = getBalance();
+	$displayBalance = "Your account balance is: $balance";
+
     displayMenu();
     displayStocks();
 }

@@ -6,8 +6,6 @@
 
 // use transactions
 
-// use decimal for money
-
 // urlencode input pass to url
 // anytime you send user input to a browser send htmlspecialchars
 // mysql real escape chars or prepare
@@ -63,7 +61,7 @@ function addUser($email, $password)
         /* build query */
         $query = sprintf("INSERT INTO users (email,passwordhash) VALUES('%s','%s')"   
         														,strtolower($email),$pwdhash);
-        echo "QUERY: $query <br />";
+
         // below try cause heavily based off Example 1 at http://www.php.net/manual/en/pdo.transactions.php
         try 
         {  
@@ -194,6 +192,7 @@ function displayMenu ()
 {
 	global $renderView;
 	global $quoteResult;
+	global $buyStockResult;
 	
 	$renderView = "<form class=\"form-inline\" name=\"submitForm\" method=\"GET\" action=\"index.php\">";
 	$renderView .= "<input class=\"btn btn-mini\" type=\"submit\" value=\"Get Quote\">";
@@ -217,7 +216,8 @@ function displayMenu ()
 	$renderView .= "<input type=\"hidden\" name=\"action\" value=\"buy\">";
 	$renderView .= "<input type=\"text\" class=\"span1\" name=\"symbol\" />";
 	$renderView .= "&nbsp;";
-	$renderView .= "Quantity  <input type=\"text\" class=\"span1\" name=\"quantity\" /><br />";
+	$renderView .= "Quantity  <input type=\"text\" class=\"span1\" name=\"quantity\" />";
+	$renderView .= $buyStockResult . "<br />";
     $renderView .= "</form>";
 
 
@@ -254,17 +254,76 @@ function getQuote($symbol)
 	return $result;
 }
 
+/*
+Information used in this function learned in section notes 
+and http://dev.mysql.com/doc/refman/5.0/en/insert-on-duplicate.html
+*/
 function buyStock($symbol, $quantity) 
 {
-   $quote=getQuote($symbol);
+   $buyStockResult = '';
+   $symbol=mysql_escape_string(strtoupper($symbol));
+   $quantity=mysql_escape_string($quantity);
    
+   $quoteResult=getQuote($symbol);
+   if (!($quoteResult['lastTrade'] > 0))
+   {
+	   $buyStockResult = "&nbsp;&nbsp" . $quoteResult['symbol'] . " is an invalid stock symbol";
+   } 
+   elseif ($quantity <= 0)
+   {
+   	   $buyStockResult = "&nbsp;&nbspInvalid quantity";
+
+   } 
+   else
+   {
+	 $total = $quoteResult['lastTrade'] * $quantity;  
+	 $balance = getBalance();
+	 if($balance < $total) 
+	 {
+		 $buyStockResult = "&nbsp;&nbsp;Insufficient funds";		 
+	 }
+	 else
+	 {
+//	INSERT INTO table (a,b,c) VALUES (1,2,3)
+//  ON DUPLICATE KEY UPDATE c=c+1;	 
+
+		/* get database handle */
+        $pdo = connectDb();
+        
+        /* build query */
+        $query1 = sprintf("INSERT INTO stocks (id,symbol,shares) VALUES('%s','%s','%s') ON DUPLICATE KEY UPDATE shares=shares+'%s'"   
+        														, $_SESSION['userId'], $symbol, $quantity, $quantity);
+        $query2 = sprintf("UPDATE users SET balance=balance-'%s' WHERE id='%s'"   
+        														,$total, $_SESSION['userId']);
+
+        // below try cause heavily based off Example 1 at http://www.php.net/manual/en/pdo.transactions.php
+        try 
+        {  
+	        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	        
+	        $pdo->beginTransaction();
+	        $pdo->exec($query1);
+	        $pdo->exec($query2);
+	        $pdo->commit();
+	    }	        
+	    catch (Exception $e) 
+	    {
+	        $pdo->rollBack();
+	        echo "Failed: " . $e->getMessage();
+	    }
+	                
+        // close database and return 
+        $pdo = null;
+        $buyStockResult = "&nbsp;&nbsp;$quantity shares of $symbol successfuly purchased for a total of $ $total";
+	 }
+   }
+   return $buyStockResult;
+
 }
 
 // function to check that stock is valid
 
 // potentially allow user to enter csv list of symbols for quotes
-
-// function to buyStock
 
 // function to sellStock
 
