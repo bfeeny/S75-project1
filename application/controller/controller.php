@@ -1,10 +1,11 @@
 <?php
-// Start session tracking
+/* Start session tracking */
 session_start();
 
-// Prepare data and make functions available
+/* Prepare data and make functions available */
 include(M . "model.php");
 
+/* initialize a few variables */
 $renderView = '';
 $pageTitle = "c$75 Finance";
 $statusMessage = '';
@@ -20,16 +21,30 @@ if(!(isset($_SESSION['authenticated'])))
     /* check if we have submitted a login or registration request */
     if ((isset($_POST['email'])) && (isset($_POST['password']))) 
     {
+    	/* we have a registration request */
     	if ( isset($_POST['register'])) 
     	{
-    		echo "Adding User<br />";
-    		addUser($_POST['email'], $_POST['password']);
+    		/* check to make sure email is valid */
+    		if (!(validEmail($_POST['email'])))
+    		{
+	    		echo "Your email is not valid<br />";
+    		}
+    		/* check to make sure password is valid */
+    		elseif (!(validPass($_POST['password'])))
+    		{
+    			echo "Your password is not valid.  Must be at least 6 characters<br />";
+    			echo "and contain at least 1 number and 1 letter.<br />";
+    		}
+    		/* if we have a good email and pass then add the user */
+    		else
+    		{
+	    		addUser($_POST['email'], $_POST['password']);
+	    		echo "Username Added!!<br />";
+	    	}
     	}
     	else
     	{
-    	    echo "Checking Login<br />";
     	    $userId = loginUser($_POST['email'], $_POST['password']);
-    	    echo "userId is" . $userId . "<br />";
     	    
     	    /* if we have a valid userId, move to the main page, otherwise print rejection */
     	    if( $userId > 0 )
@@ -46,43 +61,50 @@ if(!(isset($_SESSION['authenticated'])))
     }  
     /* display loginForm */
 	loginForm();
-
 }
 else
 {
-	/* We are logged in */
+	/* We are logged in, show cash balance information */
 	$loginStatus = "Logged in (<a href=\"http://$host$path/index.php?action=logout\">Log Out</a>)";
 	$balance = getBalance();
-	$displayBalance = "Your account balance is: $balance";
+	$displayBalance = "Your cash account balance is: $ $balance";
 	
 	/* check what action the user is trying to take */
     if (isset($_GET['action'])) 
     {
-    
     	$action = $_GET['action']; 
         
         switch ($action) 
         { 
+        	/* show a stock quote */
         	case "getQuote":
         	
         		$pageTitle = "Get Quote";
         		$quoteResult = getQuote($_GET['symbol']);
         		
         	break;
-        
+        	/* buy a stock */
             case "buy":
             
             	$pageTitle = "Buy Stocks";
             	$buyStockResult = buyStock($_GET['symbol'],$_GET['quantity']);
                   
             break;
-            
+            /* sell a stock */
             case "sell":
             
                 $pageTitle = "Sell Stocks";
+                $sellStockResult = sellStock($_GET['symbol']);
                   
-            break;                   
+            break;     
+            /* show a total of all stocks, including total cash and stocks */
+            case "portfolioTotal":
             
+                $pageTitle = "Portfolio Total";
+                $portfolioTotal = TRUE;
+                  
+            break;   
+            /* logout user */                         
             case "logout":
             
                 session_destroy();
@@ -91,7 +113,7 @@ else
             break;      
         }
     }
-    /* We are logged in*/
+    /* We are logged in, allow the option to logout */
 	$loginStatus = "Logged in (<a href=\"http://$host$path/index.php?action=logout\">Log Out</a>)";
 	
 	/*
@@ -99,12 +121,16 @@ else
 	proper info
 	*/
 	$balance = getBalance();
-	$displayBalance = "Your account balance is: $balance";
+	$displayBalance = "Your cash account balance is: $ $balance";
 
+	/* display the main page */
     displayMenu();
+    
+    /* display a list of our stocks */
     displayStocks();
 }
 
+/* include view which handles page formatting */
 include(V . "view.php");
 
 ?>

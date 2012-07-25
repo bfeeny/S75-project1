@@ -1,0 +1,50 @@
+My database is very straightforward.  I have a users table and a stocks table.  The users
+table has id, email, passwordhash and balance.
+
+I am using a users email address as their username.  Users can only have a single email
+address work for a single account.  I am storing the balance information in the users
+table because users can only have one account.  If users could have multiple accounts,
+then I would have factored out account information such as balance, account number, etc
+into a separate table.
+
+My stocks table simply stores users id, stock symbol, and shares.  In a more involved
+stock system I would have created a table just to store stockId, stockSymbol, stockName,
+etc and then used the stockId as a foreign key.  This was unnecessary in this rather basic
+stock program, and I believe I accomplished 3NF for my database.
+
+I am using a number of constraints and indexes on the tables to improve performance and
+data quality.  I used transactions where any simultaneous data is being manipulated.
+
+A single form is presented to the user, it is the same form used to register as it is to
+login.  If a user enters an email and password they can either click the Sign In button or
+Register button.  I am doing extensive validation of user information on the server side,
+as well as validation to meet the project scope on the client side using Javascript.
+
+Once logged in, a single page displays everything the user needs to work with.  A user can
+get a stock quote or buy a stock.  If a user has stocks already purchased, they are
+displayed with symbol and number of shares.  A hyperlink exists next to each stock so they
+may sell their shares of that stock.  If a user owns stocks they are also shown a button
+that will allow them to get the total value of their portfolio, which will break out each
+stock value individually and give them cash account totals and total portfolio totals as
+well.
+
+The cash account balance is always displayed at the top of the screen as a matter of
+convenience.
+
+The status of whether a user is logged in or not is shown on the current page, with a
+hyperlink to logoff if logged in.
+
+I used and cited a number of bits of code in this project.  I focused hard on trying to
+meet all the requirements of the scope and I believe I have obtained that.  There was a
+lot for me to learn on this project, so I believe I probably sacrificed some style (i.e.
+got a bit sloppy) in order to use the time to figure out how to accomplish the task at
+hand.  I validated all code via W3 and I tried to stay within the recommendations of the
+CS50 styling guide.
+
+My index.php has a few constants and variables defined.  controller.php is the main
+orchestrator, including both the model and the view.  The controller is checking for user
+input and making decisions based on users selection and validity of data.  The model.php
+houses all the functions in the program.  The view.php is used to display the user
+information in a template.
+
+Program was tested with Safari and Chrome.
